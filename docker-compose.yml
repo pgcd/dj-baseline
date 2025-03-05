@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: {{ project_name }}
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: {{ project_name }}
+    env_file: ./docker/.env
+    volumes:
+      - ../vagrant_data/postgres_{{ project_name }}:/var/lib/postgresql/data:consistent
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: "pg_isready --username={{ project_name }}"
+      interval: 2s
+      retries: 20
+    command: [ "postgres", "-c", "log_min_duration_statement=500" ]
+
+  {{ project_name }}:
+    extends:
+      file: ./docker-templates.yml
+      service: app
+
+    volumes:
+      - type: bind
+        source: ./docker/bash_history.txt
+        target: /home/{{ project_name }}/.bash_history
+
+    environment:
+      - IPYTHONDIR=/code/.ipython
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: [ "sleep", "infinity" ]
+    stdin_open: true
+    ports:
+      - "${WEB_PORT:-9036}:9036"

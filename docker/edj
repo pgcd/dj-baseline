@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Run management command after loading platform.env
+. ~/platform.env
+VHOST="${FLUENT_TAG:-$HOSTNAME}"
+THREAD_PARAMS='{"threadKey": "'"${GIT_USER}@${VHOST}:${GIT_HEAD_HASH}"'"}'
+VERBOSITY="${EDJ_VERBOSITY:-0}"
+CLI="$*"
+echo "$GIT_USER@$VHOST": "$CLI"
+curl -X POST -H 'Content-type: application/json' --data '{"text": "['"$GIT_USER@$VHOST"']Executing '"$CLI"'", "thread": '"${THREAD_PARAMS}"'}' "$SLACK_HOOK_URL" || true
+OUTPUT="$(python manage.py "$@" 2>&1)"
+if [[ $VERBOSITY -gt 0 ]]; then
+  curl -X POST -H 'Content-type: application/json' --data '{"text": "['"$GIT_USER@$VHOST"']Execution of '"$CLI"' completed. Result:\n'"$OUTPUT"'", "thread": '"${THREAD_PARAMS}"'}' "$SLACK_HOOK_URL"  || true ;
+  else
+    curl -X POST -H 'Content-type: application/json' --data '{"text": "['"$GIT_USER@$VHOST"']Execution of '"$CLI"' completed.", "thread": '"${THREAD_PARAMS}"'}' "$SLACK_HOOK_URL"  || true;
+fi
+echo "$GIT_USER@$VHOST": "$OUTPUT"

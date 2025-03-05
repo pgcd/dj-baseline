@@ -1,0 +1,5 @@
+#!/bin/bash
+arn="$(tail -1 /tmp/bastions)"
+cluster=$(basename $(dirname $arn))
+
+aws ecs execute-command --container bastion --interactive --task "$arn" --cluster "$cluster" --command '/bin/bash'

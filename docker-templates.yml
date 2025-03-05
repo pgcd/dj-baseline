@@ -1,0 +1,28 @@
+services:
+  app:
+    image: {{ project_name }}
+
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+      target: dev
+
+      args:
+        - GIT_HASH=${GIT_HASH:-}
+        - GIT_USER=${GIT_USER:-}
+        - GIT_LABEL=${GIT_LABEL:-}
+        - SESSION_MANAGER_ARCH=${SESSION_MANAGER_ARCH:-}
+
+    env_file:  # Note: this is NOT used when spinning up the container, only when running commands inside it. Yeah.
+      - path: ./.env
+        required: false
+      - path: ./docker/.env
+        required: false
+
+    volumes:
+      - ./src:/code:consistent
+
+    environment:  # Note: I tried using the list syntax but it passes Nulls when empty, and I prefer empty strings
+      MODIFIER: ${MODIFIER:-}
+      LABEL: ${LABEL:-}
+      ENVIRONMENT: ${ENVIRONMENT:-}

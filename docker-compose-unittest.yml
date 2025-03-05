@@ -1,0 +1,17 @@
+services:
+  postgres:
+    extends:
+      file: ./docker-compose.yml
+      service: postgres
+
+  {{ project_name }}_tests:
+    extends:
+      file: ./docker-templates.yml
+      service: app
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    command: [ "sleep", "infinity" ]
+    stdin_open: true
